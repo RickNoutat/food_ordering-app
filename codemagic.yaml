@@ -1,0 +1,192 @@
+# codemagic.yaml — CI/CD pour fast_food (Expo + React Native)
+# Documentation: https://docs.codemagic.io/yaml-basic-configuration/yaml-getting-started/
+
+definitions:
+  # ─── Environnement commun ───────────────────────────────────────────────────
+  env_common: &env_common
+    node: 20.18.0
+    vars:
+      EXPO_PUBLIC_APPWRITE_ENDPOINT: $EXPO_PUBLIC_APPWRITE_ENDPOINT
+      EXPO_PUBLIC_APPWRITE_PROJECT_ID: $EXPO_PUBLIC_APPWRITE_PROJECT_ID
+      EXPO_PUBLIC_APPWRITE_DATABASE_ID: $EXPO_PUBLIC_APPWRITE_DATABASE_ID
+      EXPO_PUBLIC_APPWRITE_COLLECTION_ID: $EXPO_PUBLIC_APPWRITE_COLLECTION_ID
+      SENTRY_AUTH_TOKEN: $SENTRY_AUTH_TOKEN
+    # Les secrets sont définis dans Codemagic > App Settings > Environment variables
+
+  # ─── Scripts réutilisables ──────────────────────────────────────────────────
+  install: &install
+    name: Installer les dépendances
+    script: |
+      npm ci
+
+  lint: &lint
+    name: Lint & TypeScript check
+    script: |
+      npm run lint
+      npx tsc --noEmit
+
+  eas_setup: &eas_setup
+    name: Configurer EAS CLI
+    script: |
+      npm install -g eas-cli
+      eas whoami
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WORKFLOWS
+# ─────────────────────────────────────────────────────────────────────────────
+workflows:
+
+  # ── 1. Pull Request : validation rapide ─────────────────────────────────────
+  pr-check:
+    name: "PR Check — Lint & Types"
+    max_build_duration: 20
+    triggering:
+      events:
+        - pull_request
+      branch_patterns:
+        - pattern: "main"
+          include: true
+        - pattern: "develop"
+          include: true
+    environment:
+      <<: *env_common
+    scripts:
+      - *install
+      - *lint
+    publishing:
+      email:
+        recipients:
+          - $EMAIL_RECIPIENT
+        notify:
+          success: false
+          failure: true
+
+  # ── 2. Preview Android (APK interne) sur push develop ───────────────────────
+  android-preview:
+    name: "Android Preview (APK)"
+    max_build_duration: 60
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: "develop"
+          include: true
+    environment:
+      <<: *env_common
+      groups:
+        - expo_credentials   # groupe défini dans Codemagic contenant EXPO_TOKEN
+    scripts:
+      - *install
+      - *lint
+      - *eas_setup
+      - name: Build Android Preview (EAS)
+        script: |
+          eas build \
+            --platform android \
+            --profile preview \
+            --non-interactive \
+            --no-wait
+    publishing:
+      email:
+        recipients:
+          - $EMAIL_RECIPIENT
+        notify:
+          success: true
+          failure: true
+
+  # ── 3. Production iOS + Android sur push main ────────────────────────────────
+  production-release:
+    name: "Production — iOS & Android"
+    max_build_duration: 120
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: "main"
+          include: true
+    environment:
+      <<: *env_common
+      groups:
+        - expo_credentials        # EXPO_TOKEN
+        - apple_credentials       # APPLE_ID, APP_STORE_CONNECT_KEY_IDENTIFIER, etc.
+        - google_credentials      # GOOGLE_SERVICE_ACCOUNT_KEY (base64)
+    scripts:
+      - *install
+      - *lint
+
+      - name: Incrémenter la version de build
+        script: |
+          # Incrémente automatiquement via eas.json "autoIncrement": true
+
+      - name: Build iOS (EAS)
+        script: |
+          eas build \
+            --platform ios \
+            --profile production \
+            --non-interactive \
+            --no-wait
+
+      - name: Build Android (EAS)
+        script: |
+          eas build \
+            --platform android \
+            --profile production \
+            --non-interactive \
+            --no-wait
+
+      - name: Soumettre sur les stores (après build EAS)
+        script: |
+          # Attendre que les builds soient terminés puis soumettre
+          eas submit \
+            --platform all \
+            --latest \
+            --non-interactive
+
+    publishing:
+      email:
+        recipients:
+          - $EMAIL_RECIPIENT
+        notify:
+          success: true
+          failure: true
+
+  # ── 4. Web — déploiement Expo Web (optionnel) ────────────────────────────────
+  web-deploy:
+    name: "Web Build & Deploy"
+    max_build_duration: 30
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: "main"
+          include: true
+    environment:
+      <<: *env_common
+    scripts:
+      - *install
+      - *lint
+      - name: Build Web (Expo)
+        script: |
+          npx expo export --platform web
+          # Le dossier de sortie est "dist/"
+
+      - name: Déployer sur Netlify (optionnel)
+        script: |
+          if [ -n "$NETLIFY_AUTH_TOKEN" ]; then
+            npx netlify-cli deploy \
+              --dir=dist \
+              --site=$NETLIFY_SITE_ID \
+              --auth=$NETLIFY_AUTH_TOKEN \
+              --prod
+          else
+            echo "Netlify non configuré — skipping deploy"
+          fi
+    artifacts:
+      - dist/**
+    publishing:
+      email:
+        recipients:
+          - $EMAIL_RECIPIENT
+        notify:
+          success: true
+          failure: true
