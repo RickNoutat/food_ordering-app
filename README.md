@@ -1,10 +1,6 @@
 # Fast Food — Application mobile de commande de nourriture
 
-Application mobile full-stack de commande de nourriture, développée avec **React Native + Expo**, **Appwrite** comme backend et déployée via **Codemagic CI/CD**.
-
-![Hero](./assets/readme/hero.png)
-
----
+## Application mobile full-stack de commande de nourriture, développée avec **React Native + Expo**, **Appwrite** comme backend et déployée via **Codemagic CI/CD**.
 
 ## Table des matières
 
@@ -43,16 +39,16 @@ Le back-end repose entièrement sur **Appwrite** (authentification, base de donn
 
 ## Stack technique
 
-| Domaine | Technologie |
-| --- | --- |
-| Framework | React Native 0.81 + Expo SDK 54 |
-| Navigation | Expo Router v6 (file-based routing) |
-| Langage | TypeScript |
-| Style | NativeWind v4 (Tailwind CSS pour React Native) |
-| Backend / BaaS | Appwrite (Auth, Database, Storage) |
-| État global | Zustand v5 |
-| Monitoring | Sentry React Native |
-| CI/CD | Codemagic + EAS Build |
+| Domaine        | Technologie                                    |
+| -------------- | ---------------------------------------------- |
+| Framework      | React Native 0.81 + Expo SDK 54                |
+| Navigation     | Expo Router v6 (file-based routing)            |
+| Langage        | TypeScript                                     |
+| Style          | NativeWind v4 (Tailwind CSS pour React Native) |
+| Backend / BaaS | Appwrite (Auth, Database, Storage)             |
+| État global    | Zustand v5                                     |
+| Monitoring     | Sentry React Native                            |
+| CI/CD          | Codemagic + EAS Build                          |
 
 ---
 
@@ -134,27 +130,27 @@ Remplir les valeurs dans `.env` (voir la section [Variables d'environnement](#va
 npm start
 ```
 
-| Raccourci | Action |
-| --- | --- |
-| `i` | Ouvrir sur simulateur iOS |
-| `a` | Ouvrir sur émulateur Android |
-| `w` | Ouvrir dans le navigateur |
+| Raccourci     | Action                                    |
+| ------------- | ----------------------------------------- |
+| `i`           | Ouvrir sur simulateur iOS                 |
+| `a`           | Ouvrir sur émulateur Android              |
+| `w`           | Ouvrir dans le navigateur                 |
 | Scanner le QR | Ouvrir dans Expo Go sur appareil physique |
 
 ---
 
 ## Variables d'environnement
 
-| Variable | Description |
-| --- | --- |
-| `EXPO_PUBLIC_APPWRITE_ENDPOINT` | URL de l'instance Appwrite (ex: `https://cloud.appwrite.io/v1`) |
-| `EXPO_PUBLIC_APPWRITE_PROJECT_ID` | ID du projet Appwrite |
-| `EXPO_PUBLIC_APPWRITE_DATABASE_ID` | ID de la base de données |
-| `EXPO_PUBLIC_APPWRITE_USERS_COLLECTION_ID` | Collection des profils utilisateurs |
-| `EXPO_PUBLIC_APPWRITE_CATEGORIES_COLLECTION_ID` | Collection des catégories |
-| `EXPO_PUBLIC_APPWRITE_MENU_COLLECTION_ID` | Collection des articles du menu |
-| `EXPO_PUBLIC_APPWRITE_CUSTOMIZATIONS_COLLECTION_ID` | Collection des personnalisations (toppings, sides) |
-| `EXPO_PUBLIC_APPWRITE_MENU_CUSTOMIZATIONS_COLLECTION_ID` | Table de liaison menu ↔ personnalisations |
+| Variable                                                 | Description                                                     |
+| -------------------------------------------------------- | --------------------------------------------------------------- |
+| `EXPO_PUBLIC_APPWRITE_ENDPOINT`                          | URL de l'instance Appwrite (ex: `https://cloud.appwrite.io/v1`) |
+| `EXPO_PUBLIC_APPWRITE_PROJECT_ID`                        | ID du projet Appwrite                                           |
+| `EXPO_PUBLIC_APPWRITE_DATABASE_ID`                       | ID de la base de données                                        |
+| `EXPO_PUBLIC_APPWRITE_USERS_COLLECTION_ID`               | Collection des profils utilisateurs                             |
+| `EXPO_PUBLIC_APPWRITE_CATEGORIES_COLLECTION_ID`          | Collection des catégories                                       |
+| `EXPO_PUBLIC_APPWRITE_MENU_COLLECTION_ID`                | Collection des articles du menu                                 |
+| `EXPO_PUBLIC_APPWRITE_CUSTOMIZATIONS_COLLECTION_ID`      | Collection des personnalisations (toppings, sides)              |
+| `EXPO_PUBLIC_APPWRITE_MENU_CUSTOMIZATIONS_COLLECTION_ID` | Table de liaison menu ↔ personnalisations                       |
 
 ---
 
@@ -164,12 +160,12 @@ npm start
 2. Activer l'authentification **Email/Password**
 3. Créer une base de données avec les collections suivantes :
 
-   | Collection | Attributs principaux |
-   | --- | --- |
-   | `menu` | `name`, `type`, `price`, `rating`, `calories`, `protein`, `description`, `image_url` |
-   | `customizations` | `name`, `price`, `image_url`, `type` (topping / side) |
-   | `menu_customizations` | `menu_id`, `customization_id` |
-   | `users` | `name`, `email`, `avatar_url` |
+   | Collection            | Attributs principaux                                                                 |
+   | --------------------- | ------------------------------------------------------------------------------------ |
+   | `menu`                | `name`, `type`, `price`, `rating`, `calories`, `protein`, `description`, `image_url` |
+   | `customizations`      | `name`, `price`, `image_url`, `type` (topping / side)                                |
+   | `menu_customizations` | `menu_id`, `customization_id`                                                        |
+   | `users`               | `name`, `email`, `avatar_url`                                                        |
 
 4. Configurer les permissions : lecture autorisée pour les utilisateurs authentifiés
 5. Seed la base de données :
@@ -184,12 +180,12 @@ npm start
 
 Le fichier `codemagic.yaml` configure 4 workflows automatisés :
 
-| Workflow | Déclencheur | Action |
-| --- | --- | --- |
-| `pr-check` | Pull Request sur `main` / `develop` | Lint + vérification TypeScript |
-| `android-preview` | Push sur `develop` | EAS Build → APK interne |
-| `production-release` | Push sur `main` | EAS Build iOS + Android → stores |
-| `web-deploy` | Push sur `main` | Build web + déploiement Netlify |
+| Workflow             | Déclencheur                         | Action                           |
+| -------------------- | ----------------------------------- | -------------------------------- |
+| `pr-check`           | Pull Request sur `main` / `develop` | Lint + vérification TypeScript   |
+| `android-preview`    | Push sur `develop`                  | EAS Build → APK interne          |
+| `production-release` | Push sur `main`                     | EAS Build iOS + Android → stores |
+| `web-deploy`         | Push sur `main`                     | Build web + déploiement Netlify  |
 
 ### Mise en place
 
